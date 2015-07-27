@@ -32,6 +32,18 @@ APP.Main = (function() {
       }
     }
   };
+  // Used to style stories
+  var storyStyling = {};
+  var storyStyler = new Worker('scripts/style-stories.js');
+  storyStyler.onmessage = function(e) {
+    storyStyling[storyId] = e.data;
+    // Write styling parameters to elements
+    score.style.width = storyStyling[storyId].scoreDiameter;
+    score.style.height = storyStyling[storyId].scoreDiameter;
+    score.style.lineHeight = storyStyling[storyId].scoreLineHeight;
+    score.style.backgroundColor = storyStyling[storyId].scoreBackgroundColor;
+    title.style.opacity = storyStyling[storyId].opacity;
+  };
 
   var tmplStory = $('#tmpl-story').textContent;
   var tmplStoryDetails = $('#tmpl-story-details').textContent;
@@ -254,34 +266,52 @@ APP.Main = (function() {
    */
   function colorizeAndScaleStories() {
 
+    var height = main.offsetHeight;
+    //var mainPosition = main.getBoundingClientRect();
+    var bodyStart = document.body.getBoundingClientRect().top;
     var storyElements = document.querySelectorAll('.story');
 
     // It does seem awfully broad to change all the
-    // colors every time!
+    // colors every time! FIXME: Cache results.
     for (var s = 0; s < storyElements.length; s++) {
-
       var story = storyElements[s];
       var score = story.querySelector('.story__score');
       var title = story.querySelector('.story__title');
 
-      // Base the scale on the y position of the score.
-      var height = main.offsetHeight;
-      var mainPosition = main.getBoundingClientRect();
-      var scoreLocation = score.getBoundingClientRect().top -
-          document.body.getBoundingClientRect().top;
-      var scale = Math.min(1, 1 - (0.05 * ((scoreLocation - 170) / height)));
-      var opacity = Math.min(1, 1 - (0.5 * ((scoreLocation - 170) / height)));
+      var storyId = story.id;
+      if (!storyStyling.hasOwnProperty(storyId)) {
+        // Create the hashmap for this story
+        storyStyling[storyId] = {};
+        var scoreBounding = score.getBoundingClientRect();
+        /* DELEGATE TO WORKER
+        // Base the scale on the y position of the score.
+        var scoreLocation = scoreBounding.top - bodyStart;
+        var scale = Math.min(1, 1 - (0.05 * ((scoreLocation - 170) / height)));
 
-      score.style.width = (scale * 40) + 'px';
-      score.style.height = (scale * 40) + 'px';
-      score.style.lineHeight = (scale * 40) + 'px';
+        // Cache style parameters
+        storyStyling[storyId]['scoreDiameter'] = (scale * 40) + 'px';
+        storyStyling[storyId]['scoreLineHeight'] = storyStyling[storyId]['scoreDiameter'];
+        storyStyling[storyId]['opacity'] =
+            Math.min(1, 1 - (0.5 * ((scoreLocation - 170) / height)));
+        // Now figure out how wide it is and use that to saturate it.
+        var saturation = (100 * ((scoreBounding.width - 38) / 2));
+        storyStyling[storyId]['scoreBackgroundColor'] = 'hsl(42, ' + saturation + '%, 50%)';
+      
+        // Write styling parameters to elements
+        score.style.width = storyStyling[storyId].scoreDiameter;
+        score.style.height = storyStyling[storyId].scoreDiameter;
+        score.style.lineHeight = storyStyling[storyId].scoreLineHeight;
+        score.style.backgroundColor = storyStyling[storyId].scoreBackgroundColor;
+        title.style.opacity = storyStyling[storyId].opacity;
+        */
 
-      // Now figure out how wide it is and use that to saturate it.
-      scoreLocation = score.getBoundingClientRect();
-      var saturation = (100 * ((scoreLocation.width - 38) / 2));
-
-      score.style.backgroundColor = 'hsl(42, ' + saturation + '%, 50%)';
-      title.style.opacity = opacity;
+        storyStyler.postMessage({
+          'storyId': storyId,
+          'height': height,
+          'bodyStart': bodyStart,
+          'scoreStart': scoreBounding.top
+        });
+      }
     }
   }
 
