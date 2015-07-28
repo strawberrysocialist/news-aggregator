@@ -1,6 +1,8 @@
 
 onmessage = function(e) {
 	var storyId = e.data.storyId;
+	//var title = e.data.title;
+	//var score = e.data.score;
 	var height = e.data.height;
 	var bodyStart = e.data.bodyStart;
 	var scoreStart = e.data.scoreStart;
@@ -18,5 +20,10 @@ onmessage = function(e) {
 	// Now figure out how wide it is and use that to saturate it.
 	var saturation = (100 * ((storyStyling['scoreDiameter'] - 38) / 2));
 	storyStyling['scoreBackgroundColor'] = 'hsl(42, ' + saturation + '%, 50%)';
-	postMessage(storyStyling);
+	postMessage({
+		'id': storyId,
+		//'title': title,
+		//'score': score,
+		'style': storyStyling
+	});
 };

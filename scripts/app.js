@@ -36,7 +36,14 @@ APP.Main = (function() {
   var storyStyling = {};
   var storyStyler = new Worker('scripts/style-stories.js');
   storyStyler.onmessage = function(e) {
-    storyStyling[storyId] = e.data;
+    var storyId = e.data.id;
+    //var title = e.data.title;
+    //var score = e.data.score;
+    storyStyling[storyId] = e.data.style;
+    //var story = document.querySelector('#' + storyId);
+    var story = document.getElementById(storyId);
+    var title = story.children[0];
+    var score = story.children[1];
     // Write styling parameters to elements
     score.style.width = storyStyling[storyId].scoreDiameter;
     score.style.height = storyStyling[storyId].scoreDiameter;
@@ -267,7 +274,6 @@ APP.Main = (function() {
   function colorizeAndScaleStories() {
 
     var height = main.offsetHeight;
-    //var mainPosition = main.getBoundingClientRect();
     var bodyStart = document.body.getBoundingClientRect().top;
     var storyElements = document.querySelectorAll('.story');
 
@@ -307,6 +313,8 @@ APP.Main = (function() {
 
         storyStyler.postMessage({
           'storyId': storyId,
+          //'title': title,
+          //'score': score,
           'height': height,
           'bodyStart': bodyStart,
           'scoreStart': scoreBounding.top
