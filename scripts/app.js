@@ -120,18 +120,7 @@ APP.Main = (function() {
       colorizeAndScaleStories();
   }
 
-  function onStoryComment(commentDetails) {
-    commentDetails.time *= 1000;
-
-    var comment = commentsElement.querySelector(
-        '#sdc-' + commentDetails.id);
-    comment.innerHTML = storyDetailsCommentTemplate(
-        commentDetails,
-        localeData);
-  }
-
   function onStoryClick(details) {
-
     var storyDetails = $('sd-' + details.id);
 
     // Wait a little time then show the story details.
@@ -178,8 +167,17 @@ APP.Main = (function() {
       if (typeof kids === 'undefined')
         return;
 
-      for (var k = 0; k < kids.length; k++) {
+      var onStoryComment = function (commentDetails) {
+        commentDetails.time *= 1000;
 
+        var comment = commentsElement.querySelector(
+            '#sdc-' + commentDetails.id);
+        comment.innerHTML = storyDetailsCommentTemplate(
+            commentDetails,
+            localeData);
+      };
+
+      for (var k = 0; k < kids.length; k++) {
         comment = document.createElement('aside');
         comment.setAttribute('id', 'sdc-' + kids[k]);
         comment.classList.add('story-details__comment');
@@ -193,7 +191,6 @@ APP.Main = (function() {
   }
 
   function showStory(id) {
-
     if (inDetails)
       return;
 
@@ -239,7 +236,6 @@ APP.Main = (function() {
   }
 
   function hideStory(id) {
-
     if (!inDetails)
       return;
 
@@ -284,7 +280,6 @@ APP.Main = (function() {
    * of work in a cheaper way?
    */
   function colorizeAndScaleStories() {
-
     var height = main.offsetHeight;
     var bodyStart = document.body.getBoundingClientRect().top;
     var storyElements = document.querySelectorAll('.story');
@@ -313,17 +308,14 @@ APP.Main = (function() {
   }
 
   main.addEventListener('touchstart', function(evt) {
-
     // I just wanted to test what happens if touchstart
     // gets canceled. Hope it doesn't block scrolling on mobiles...
     if (Math.random() > 0.97) {
       evt.preventDefault();
     }
-
   });
 
   main.addEventListener('scroll', function() {
-
     var header = $('header');
     var headerTitles = header.querySelector('.header__title-wrapper');
     var scrollTopCapped = Math.min(70, main.scrollTop);
@@ -349,7 +341,6 @@ APP.Main = (function() {
   });
 
   function loadStoryBatch() {
-
     if (storyLoadCount > 0)
       return;
 
@@ -377,7 +368,6 @@ APP.Main = (function() {
     }
 
     storyStart += count;
-
   }
 
   // Bootstrap in the stories.
