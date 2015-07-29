@@ -37,10 +37,7 @@ APP.Main = (function() {
   var storyStyler = new Worker('scripts/style-stories.js');
   storyStyler.onmessage = function(e) {
     var storyId = e.data.id;
-    //var title = e.data.title;
-    //var score = e.data.score;
     storyStyling[storyId] = e.data.style;
-    //var story = document.querySelector('#' + storyId);
     var story = document.getElementById(storyId);
     var title = story.children[0];
     var score = story.children[1];
@@ -82,6 +79,7 @@ APP.Main = (function() {
    */
   function onStoryData (key, details) {
 
+    /*
     // This seems odd. Surely we could just select the story
     // directly rather than looping through all of them.
     var storyElements = document.querySelectorAll('.story');
@@ -102,6 +100,19 @@ APP.Main = (function() {
 
       }
     }
+    */
+    var storyId = 's-' + key;
+    var story = document.getElementById(storyId);
+    if (story !== null) {
+      details.time *= 1000;
+      var html = storyTemplate(details);
+      story.innerHTML = html;
+      story.addEventListener('click', onStoryClick.bind(this, details));
+      story.classList.add('clickable');
+    }
+
+    // Tick down. When zero we can batch in the next load.
+    storyLoadCount--;
 
     // Colorize on complete.
     if (storyLoadCount === 0)
@@ -289,32 +300,9 @@ APP.Main = (function() {
         // Create the hashmap for this story
         storyStyling[storyId] = {};
         var scoreBounding = score.getBoundingClientRect();
-        /* DELEGATE TO WORKER
-        // Base the scale on the y position of the score.
-        var scoreLocation = scoreBounding.top - bodyStart;
-        var scale = Math.min(1, 1 - (0.05 * ((scoreLocation - 170) / height)));
-
-        // Cache style parameters
-        storyStyling[storyId]['scoreDiameter'] = (scale * 40) + 'px';
-        storyStyling[storyId]['scoreLineHeight'] = storyStyling[storyId]['scoreDiameter'];
-        storyStyling[storyId]['opacity'] =
-            Math.min(1, 1 - (0.5 * ((scoreLocation - 170) / height)));
-        // Now figure out how wide it is and use that to saturate it.
-        var saturation = (100 * ((scoreBounding.width - 38) / 2));
-        storyStyling[storyId]['scoreBackgroundColor'] = 'hsl(42, ' + saturation + '%, 50%)';
-      
-        // Write styling parameters to elements
-        score.style.width = storyStyling[storyId].scoreDiameter;
-        score.style.height = storyStyling[storyId].scoreDiameter;
-        score.style.lineHeight = storyStyling[storyId].scoreLineHeight;
-        score.style.backgroundColor = storyStyling[storyId].scoreBackgroundColor;
-        title.style.opacity = storyStyling[storyId].opacity;
-        */
 
         storyStyler.postMessage({
           'storyId': storyId,
-          //'title': title,
-          //'score': score,
           'height': height,
           'bodyStart': bodyStart,
           'scoreStart': scoreBounding.top
@@ -339,7 +327,7 @@ APP.Main = (function() {
     var headerTitles = header.querySelector('.header__title-wrapper');
     var scrollTopCapped = Math.min(70, main.scrollTop);
     var scaleString = 'scale(' + (1 - (scrollTopCapped / 300)) + ')';
-
+    console.log(main.scrollTop);
     colorizeAndScaleStories();
 
     header.style.height = (156 - scrollTopCapped) + 'px';

@@ -1,8 +1,6 @@
 
 onmessage = function(e) {
 	var storyId = e.data.storyId;
-	//var title = e.data.title;
-	//var score = e.data.score;
 	var height = e.data.height;
 	var bodyStart = e.data.bodyStart;
 	var scoreStart = e.data.scoreStart;
@@ -22,8 +20,6 @@ onmessage = function(e) {
 	storyStyling['scoreBackgroundColor'] = 'hsl(42, ' + saturation + '%, 50%)';
 	postMessage({
 		'id': storyId,
-		//'title': title,
-		//'score': score,
 		'style': storyStyling
 	});
 };
