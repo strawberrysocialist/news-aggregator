@@ -48,6 +48,8 @@ APP.Main = (function() {
     score.style.backgroundColor = storyStyling[storyId].scoreBackgroundColor;
     title.style.opacity = storyStyling[storyId].opacity;
   };
+  var numberVisibleStories = 10; // Estimate only
+  var firstVisibleStoryId = null;
 
   var tmplStory = $('#tmpl-story').textContent;
   var tmplStoryDetails = $('#tmpl-story-details').textContent;
@@ -78,7 +80,6 @@ APP.Main = (function() {
    * probably in a requestAnimationFrame callback.
    */
   function onStoryData (key, details) {
-
     /*
     // This seems odd. Surely we could just select the story
     // directly rather than looping through all of them.
@@ -117,6 +118,16 @@ APP.Main = (function() {
     // Colorize on complete.
     if (storyLoadCount === 0)
       colorizeAndScaleStories();
+  }
+
+  function onStoryComment(commentDetails) {
+    commentDetails.time *= 1000;
+
+    var comment = commentsElement.querySelector(
+        '#sdc-' + commentDetails.id);
+    comment.innerHTML = storyDetailsCommentTemplate(
+        commentDetails,
+        localeData);
   }
 
   function onStoryClick(details) {
@@ -176,19 +187,9 @@ APP.Main = (function() {
         commentsElement.appendChild(comment);
 
         // Update the comment with the live data.
-        APP.Data.getStoryComment(kids[k], function(commentDetails) {
-
-          commentDetails.time *= 1000;
-
-          var comment = commentsElement.querySelector(
-              '#sdc-' + commentDetails.id);
-          comment.innerHTML = storyDetailsCommentTemplate(
-              commentDetails,
-              localeData);
-        });
+        APP.Data.getStoryComment(kids[k], onStoryComment);
       }
     }
-
   }
 
   function showStory(id) {
