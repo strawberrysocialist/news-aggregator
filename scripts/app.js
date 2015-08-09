@@ -51,6 +51,8 @@ APP.Main = (function() {
   var numberVisibleStories = 10; // Estimate only
   var firstVisibleStoryId = null;
 
+  var storyDetailsHtml = null;
+  var commentHtml = null;
   var tmplStory = $('#tmpl-story').textContent;
   var tmplStoryDetails = $('#tmpl-story-details').textContent;
   var tmplStoryDetailsComment = $('#tmpl-story-details-comment').textContent;
@@ -120,6 +122,44 @@ APP.Main = (function() {
       colorizeAndScaleStories();
   }
 
+  function getStoryDetailsDOM(details) {
+    var storyDetails = document.querySelector('.story-details');
+    var lastId;
+    var thisId = 'sd-' + details.id;
+    var doesContainerExist = storyDetails !== null;
+    //if (storyDetails === null) {
+    if (doesContainerExist) {
+      lastId = storyDetails.getAttribute('id');
+    } else {
+      //storyDetailsHtml = storyDetailsTemplate(details);
+
+      storyDetails = document.createElement('section');
+      //storyDetails.setAttribute('id', 'sd-' + details.id);
+      storyDetails.classList.add('story-details');
+      //storyDetails.innerHTML = storyDetailsHtml;
+
+      document.body.appendChild(storyDetails);
+    //} else {
+      //storyDetails.innerHTML = storyDetailsHtml;
+    }
+
+    var correctContentOnPage = lastId && lastId == thisId;
+    if (!correctContentOnPage) {
+      storyDetails.setAttribute('id', thisId);
+      storyDetailsHtml = storyDetailsTemplate(details);
+      storyDetails.innerHTML = storyDetailsHtml;
+    }
+    return storyDetails;
+  }
+
+  function getCommentDetailsDOM() {
+    if (commentHtml === null) {
+      commentHtml = storyDetailsCommentTemplate({
+        by: '', text: 'Loading comment...'
+      });
+    }
+  }
+
   function onStoryClick(details) {
     var storyDetails = $('sd-' + details.id);
 
@@ -141,6 +181,7 @@ APP.Main = (function() {
       var storyHeader;
       var storyContent;
 
+      /*
       var storyDetailsHtml = storyDetailsTemplate(details);
       var kids = details.kids;
       var commentHtml = storyDetailsCommentTemplate({
@@ -153,6 +194,9 @@ APP.Main = (function() {
       storyDetails.innerHTML = storyDetailsHtml;
 
       document.body.appendChild(storyDetails);
+      */
+      storyDetails = getStoryDetailsDOM(details);
+      commentHtml = getCommentDetailsDOM();
 
       commentsElement = storyDetails.querySelector('.js-comments');
       storyHeader = storyDetails.querySelector('.js-header');
@@ -164,6 +208,7 @@ APP.Main = (function() {
       var headerHeight = storyHeader.getBoundingClientRect().height;
       storyContent.style.paddingTop = headerHeight + 'px';
 
+      var kids = details.kids;
       if (typeof kids === 'undefined')
         return;
 
@@ -188,6 +233,120 @@ APP.Main = (function() {
         APP.Data.getStoryComment(kids[k], onStoryComment);
       }
     }
+  }
+
+  function countDecimals(value) {
+      if (Math.floor(value) !== value)
+          return value.toString().split(".")[1].length || 0;
+      return 0;
+  }
+
+  function add(x, y) { return x + y; }
+
+  function subtract(x, y) { return x - y; }
+
+  /**
+   * Decimal adjustment of a number.
+   *
+   * @param {String}  type  The type of adjustment.
+   * @param {Number}  value The number.
+   * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
+   * @returns {Number} The adjusted value.
+   */
+  function decimalAdjust(type, value, exp) {
+    // If the exp is undefined or zero...
+    if (typeof exp === 'undefined' || +exp === 0) {
+      return Math[type](value);
+    }
+    value = +value;
+    exp = +exp;
+    // If the value is not a number or the exp is not an integer...
+    if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+      return NaN;
+    }
+    // Shift
+    value = value.toString().split('e');
+    value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+    // Shift back
+    value = value.toString().split('e');
+    return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+  }
+
+  //function slide(element, smallPosition, largePosition, increment) {
+  //function slide(currentPosition, finalPosition, increment, accuracy) {
+  function slide(currentPosition, finalPosition, increment, direction, change) {
+    if (!direction) {
+      direction = 0;
+      //var isIncreasing = true;
+      largerPosition = finalPosition;
+      if (currentPosition < finalPosition) {
+        direction = 1;
+      } else if (currentPosition > finalPosition) {
+        isIncreasing = false;
+        direction = -1;
+        largerPosition = currentPosition;
+      }
+    }
+    if (!change) {
+      var largerPosition;
+      if (direction > 0) {
+        largerPosition = finalPosition;
+      } else {
+        largerPosition = currentPosition;
+      }
+      var delta = largerPosition * increment;
+      change = direction * Math.round(delta);
+    }
+    var difference = currentPosition - finalPosition;
+
+    var newPosition;
+    if (direction * difference < 0) {
+      newPosition = currentPosition + change;
+      //element.left = newPosition;
+      slide(newPosition, finalPosition, increment, direction, change);
+    } else {
+      newPosition = finalPosition;
+      //element.left = newPosition;
+    }
+
+    /**
+    var rawDiff = largePosition - smallPosition;
+    //var absDiff = Math.abs(rawDiff);
+    //var roundDiff = decimalAdjust('round', absDiff, -accuracy);
+    var roundDiff = decimalAdjust('round', rawDiff, -accuracy);
+    var more = roundDiff > 0;
+    console.log(smallPosition + ',' + largePosition + ',' +
+        increment + ',' + Math.abs(largePosition - smallPosition));
+    //if (largePosition < smallPosition) {
+    //if (Math.round(Math.abs(largePosition - smallPosition), accuracy) <= increment) {
+    if (more) {
+      //var nextPosition = operator(largePosition, smallPosition * increment);
+      //var nextPosition = smallPosition + largePosition * increment;
+      //slide(smallPosition, nextPosition, increment, operator);
+      smallPosition = smallPosition + (largePosition * increment);
+      slide(smallPosition, largePosition, increment, accuracy);
+    }
+    */
+  }
+
+  function test() {
+    var increment;
+    increment = 0.05;
+    var leftSide = main.getBoundingClientRect().width + 100;
+    //var smallPosition, largePosition;
+    //smallPosition = 0;
+    //$('.story-details').getBoundingClientRect().left = leftSide;
+    //largePosition = leftSide;
+    //increment = -0.05;
+    //slide(smallPosition, largePosition, increment, countDecimals(increment));
+    //slide(leftSide, 0, increment, countDecimals(increment));
+    slide(leftSide, 0, increment, undefined, undefined);
+
+    //smallPosition = leftSide;
+    //largePosition = 0;
+    //increment = 0.05;
+    //slide(0, leftSide, increment, countDecimals(increment));
+    slide(0, leftSide, increment, undefined, undefined);
   }
 
   function showStory(id) {
@@ -218,10 +377,13 @@ APP.Main = (function() {
       left += (0 - storyDetailsPosition.left) * 0.1;
 
       // Set up the next bit of the animation if there is more to do.
-      if (Math.abs(left) > 0.5)
-        setTimeout(animate, 4);
-      else
+      if (Math.abs(left) > 0.5) {
+        //setTimeout(animate, 4);
+        //console.log(left);
+        window.requestAnimationFrame(animate);
+      } else {
         left = 0;
+      }
 
       // And update the styles. Wait, is this a read-write cycle?
       // I hope I don't trigger a forced synchronous layout!
@@ -232,7 +394,8 @@ APP.Main = (function() {
     // every few milliseconds. That's going to keep
     // it all tight. Or maybe we're doing visual changes
     // and they should be in a requestAnimationFrame
-    setTimeout(animate, 4);
+    //setTimeout(animate, 4);
+    window.requestAnimationFrame(animate);
   }
 
   function hideStory(id) {
@@ -255,9 +418,13 @@ APP.Main = (function() {
       // Now figure out where it needs to go.
       left += (target - storyDetailsPosition.left) * 0.1;
 
+      //console.log(left + ' - ' + target + ' = ' + Math.abs(left - target));
       // Set up the next bit of the animation if there is more to do.
       if (Math.abs(left - target) > 0.5) {
-        setTimeout(animate, 4);
+        //setTimeout(animate, 4);
+        //console.log(left);
+        if (left > -1000)
+          window.requestAnimationFrame(animate);
       } else {
         left = target;
         inDetails = false;
@@ -272,7 +439,9 @@ APP.Main = (function() {
     // every few milliseconds. That's going to keep
     // it all tight. Or maybe we're doing visual changes
     // and they should be in a requestAnimationFrame
-    setTimeout(animate, 4);
+    //setTimeout(animate, 4);
+    window.requestAnimationFrame(animate);
+    test();
   }
 
   /**
@@ -280,6 +449,7 @@ APP.Main = (function() {
    * of work in a cheaper way?
    */
   function colorizeAndScaleStories() {
+    /**
     var height = main.offsetHeight;
     var bodyStart = document.body.getBoundingClientRect().top;
     var storyElements = document.querySelectorAll('.story');
@@ -304,6 +474,36 @@ APP.Main = (function() {
           'scoreStart': scoreBounding.top
         });
       }
+    }
+    */
+    var storyElements = document.querySelectorAll('.story');
+
+    // It does seem awfully broad to change all the
+    // colors every time!
+    for (var s = 0; s < storyElements.length; s++) {
+
+      var story = storyElements[s];
+      var score = story.querySelector('.story__score');
+      var title = story.querySelector('.story__title');
+
+      // Base the scale on the y position of the score.
+      var height = main.offsetHeight;
+      var mainPosition = main.getBoundingClientRect();
+      var scoreLocation = score.getBoundingClientRect().top -
+          document.body.getBoundingClientRect().top;
+      var scale = Math.min(1, 1 - (0.05 * ((scoreLocation - 170) / height)));
+      var opacity = Math.min(1, 1 - (0.5 * ((scoreLocation - 170) / height)));
+
+      score.style.width = (scale * 40) + 'px';
+      score.style.height = (scale * 40) + 'px';
+      score.style.lineHeight = (scale * 40) + 'px';
+
+      // Now figure out how wide it is and use that to saturate it.
+      scoreLocation = score.getBoundingClientRect();
+      var saturation = (100 * ((scoreLocation.width - 38) / 2));
+
+      score.style.backgroundColor = 'hsl(42, ' + saturation + '%, 50%)';
+      title.style.opacity = opacity;
     }
   }
 
