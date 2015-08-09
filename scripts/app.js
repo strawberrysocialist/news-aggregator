@@ -235,45 +235,6 @@ APP.Main = (function() {
     }
   }
 
-  function countDecimals(value) {
-      if (Math.floor(value) !== value)
-          return value.toString().split(".")[1].length || 0;
-      return 0;
-  }
-
-  function add(x, y) { return x + y; }
-
-  function subtract(x, y) { return x - y; }
-
-  /**
-   * Decimal adjustment of a number.
-   *
-   * @param {String}  type  The type of adjustment.
-   * @param {Number}  value The number.
-   * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
-   * @returns {Number} The adjusted value.
-   */
-  function decimalAdjust(type, value, exp) {
-    // If the exp is undefined or zero...
-    if (typeof exp === 'undefined' || +exp === 0) {
-      return Math[type](value);
-    }
-    value = +value;
-    exp = +exp;
-    // If the value is not a number or the exp is not an integer...
-    if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
-      return NaN;
-    }
-    // Shift
-    value = value.toString().split('e');
-    value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
-    // Shift back
-    value = value.toString().split('e');
-    return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
-  }
-
-  //function slide(element, smallPosition, largePosition, increment) {
-  //function slide(currentPosition, finalPosition, increment, accuracy) {
   function slide(currentPosition, finalPosition, increment, direction, change) {
     if (!direction) {
       direction = 0;
@@ -308,44 +269,14 @@ APP.Main = (function() {
       newPosition = finalPosition;
       //element.left = newPosition;
     }
-
-    /**
-    var rawDiff = largePosition - smallPosition;
-    //var absDiff = Math.abs(rawDiff);
-    //var roundDiff = decimalAdjust('round', absDiff, -accuracy);
-    var roundDiff = decimalAdjust('round', rawDiff, -accuracy);
-    var more = roundDiff > 0;
-    console.log(smallPosition + ',' + largePosition + ',' +
-        increment + ',' + Math.abs(largePosition - smallPosition));
-    //if (largePosition < smallPosition) {
-    //if (Math.round(Math.abs(largePosition - smallPosition), accuracy) <= increment) {
-    if (more) {
-      //var nextPosition = operator(largePosition, smallPosition * increment);
-      //var nextPosition = smallPosition + largePosition * increment;
-      //slide(smallPosition, nextPosition, increment, operator);
-      smallPosition = smallPosition + (largePosition * increment);
-      slide(smallPosition, largePosition, increment, accuracy);
-    }
-    */
   }
 
   function test() {
     var increment;
     increment = 0.05;
     var leftSide = main.getBoundingClientRect().width + 100;
-    //var smallPosition, largePosition;
-    //smallPosition = 0;
-    //$('.story-details').getBoundingClientRect().left = leftSide;
-    //largePosition = leftSide;
-    //increment = -0.05;
-    //slide(smallPosition, largePosition, increment, countDecimals(increment));
-    //slide(leftSide, 0, increment, countDecimals(increment));
     slide(leftSide, 0, increment, undefined, undefined);
 
-    //smallPosition = leftSide;
-    //largePosition = 0;
-    //increment = 0.05;
-    //slide(0, leftSide, increment, countDecimals(increment));
     slide(0, leftSide, increment, undefined, undefined);
   }
 
