@@ -235,7 +235,7 @@ APP.Main = (function() {
     }
   }
 
-  function slide(currentPosition, finalPosition, increment, direction, change) {
+  function slide(element, currentPosition, finalPosition, increment, direction, change) {
     if (!direction) {
       direction = 0;
       //var isIncreasing = true;
@@ -263,12 +263,16 @@ APP.Main = (function() {
     var newPosition;
     if (direction * difference < 0) {
       newPosition = currentPosition + change;
-      //element.left = newPosition;
-      slide(newPosition, finalPosition, increment, direction, change);
+      //element.getBoundingClientRect().left = newPosition + 'px';
+      //slide(element, newPosition, finalPosition, increment, direction, change);
     } else {
       newPosition = finalPosition;
-      //element.left = newPosition;
+      //element.getBoundingClientRect().left = newPosition + 'px';
     }
+    console.log('Updating to ' + newPosition + 'px');
+    element.style.left = newPosition + 'px';
+    if (newPosition != finalPosition)
+        slide(element, newPosition, finalPosition, increment, direction, change);
   }
 
   function test() {
@@ -326,7 +330,12 @@ APP.Main = (function() {
     // it all tight. Or maybe we're doing visual changes
     // and they should be in a requestAnimationFrame
     //setTimeout(animate, 4);
-    window.requestAnimationFrame(animate);
+    //window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(function() {
+      slide(storyDetails,
+          storyDetails.getBoundingClientRect().left,
+          0, 0.01, undefined, undefined);
+    });
   }
 
   function hideStory(id) {
@@ -371,8 +380,14 @@ APP.Main = (function() {
     // it all tight. Or maybe we're doing visual changes
     // and they should be in a requestAnimationFrame
     //setTimeout(animate, 4);
-    window.requestAnimationFrame(animate);
-    test();
+    //window.requestAnimationFrame(animate);
+    //test();
+    window.requestAnimationFrame(function() {
+      slide(storyDetails, 0,
+          main.getBoundingClientRect().width + 100,
+          0.05, undefined, undefined);
+    });
+    inDetails = false;
   }
 
   /**
